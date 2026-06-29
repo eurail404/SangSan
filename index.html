@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>정상진 기술총괄 100대 명산 도전 배팅</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans KR', sans-serif; background: #f4f6f8; color: #1a1a1a; min-height: 100vh; }
+  header { background: linear-gradient(135deg, #1a6b3a 0%, #2d9e5f 100%); color: #fff; padding: 1.5rem 1rem; text-align: center; }
+  header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  header p { font-size: 13px; opacity: .85; }
+  .period-badge { display: inline-block; background: rgba(255,255,255,.2); color: #fff; font-size: 12px; padding: 4px 12px; border-radius: 20px; margin-top: 8px; border: 1px solid rgba(255,255,255,.3); }
+  .header-stats { display: flex; justify-content: center; gap: 1.5rem; margin-top: 12px; font-size: 12px; opacity: .9; }
+  .header-stat-val { font-size: 16px; font-weight: 700; display: block; }
+  .stats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; padding: 1rem; max-width: 640px; margin: 0 auto; }
+  .stat-card { background: #fff; border-radius: 12px; padding: 1rem; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .stat-val { font-size: 20px; font-weight: 700; color: #1a6b3a; }
+  .stat-lbl { font-size: 11px; color: #777; margin-top: 3px; }
+  .main { max-width: 640px; margin: 0 auto; padding: 0 1rem 2rem; }
+  .tabs { display: flex; border-bottom: 2px solid #e5e7eb; margin-bottom: 1rem; overflow-x: auto; }
+  .tab { flex: 1; min-width: 66px; padding: 10px 4px; text-align: center; font-size: 12px; font-weight: 500; cursor: pointer; color: #888; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -2px; white-space: nowrap; }
+  .tab.active { color: #1a6b3a; border-bottom-color: #1a6b3a; }
+  .panel { display: none; } .panel.active { display: block; }
+  .section { background: #fff; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .section-title { font-size: 15px; font-weight: 600; color: #1a1a1a; margin-bottom: 1rem; }
+  .bet-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
+  .bet-btn { border: 2px solid #e5e7eb; border-radius: 12px; padding: 1rem .75rem; cursor: pointer; text-align: center; background: #fff; transition: all .15s; }
+  .bet-btn:hover { border-color: #aaa; }
+  .bet-btn.selected-success { border-color: #1a6b3a; background: #f0faf4; }
+  .bet-btn.selected-fail { border-color: #c0392b; background: #fff5f5; }
+  .bet-icon { font-size: 28px; margin-bottom: 4px; }
+  .bet-label { font-size: 15px; font-weight: 600; color: #1a1a1a; }
+  .bet-desc { font-size: 11px; color: #888; margin-top: 2px; }
+  .odds-badge { font-size: 12px; font-weight: 600; margin-top: 8px; padding: 3px 10px; border-radius: 20px; display: inline-block; }
+  .odds-success { background: #e8f7ef; color: #1a6b3a; }
+  .odds-fail { background: #fff0ef; color: #c0392b; }
+  .input-group { margin-bottom: .875rem; }
+  .input-group label { display: block; font-size: 13px; color: #555; margin-bottom: 4px; font-weight: 500; }
+  .input-group input { width: 100%; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #1a1a1a; outline: none; transition: border-color .15s; }
+  .input-group input:focus { border-color: #1a6b3a; }
+  .preview-box { background: #f0faf4; border: 1px solid #b7dfca; border-radius: 8px; padding: .875rem; margin-bottom: .875rem; display: none; }
+  .preview-row { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; color: #444; }
+  .preview-row .bold { font-weight: 600; color: #1a6b3a; }
+  .submit-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; background: #1a6b3a; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; transition: background .15s; }
+  .submit-btn:hover { background: #155c30; }
+  .submit-btn:disabled { background: #c5c5c5; cursor: not-allowed; }
+  .notice { font-size: 11px; color: #999; text-align: center; margin-top: .625rem; line-height: 1.6; }
+  .bets-list { display: flex; flex-direction: column; gap: 8px; }
+  .bet-item { background: #fafafa; border: 1px solid #eee; border-radius: 10px; padding: .875rem 1rem; display: flex; justify-content: space-between; align-items: center; }
+  .bet-name { font-size: 14px; font-weight: 600; color: #1a1a1a; }
+  .bet-time { font-size: 11px; color: #aaa; margin-top: 2px; }
+  .bet-amount { font-size: 15px; font-weight: 700; color: #1a1a1a; text-align: right; }
+  .bet-choice-badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; display: inline-block; margin-top: 3px; }
+  .badge-success { background: #e8f7ef; color: #1a6b3a; }
+  .badge-fail { background: #fff0ef; color: #c0392b; }
+  .summary-box { background: #f9f9f9; border-radius: 10px; padding: 1rem; margin-top: .875rem; border: 1px solid #eee; }
+  .summary-row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; color: #555; }
+  .summary-row.total { font-weight: 700; font-size: 14px; color: #1a1a1a; border-top: 1px solid #e5e7eb; margin-top: 6px; padding-top: 8px; }
+  .fund-highlight { font-size: 13px; color: #1a6b3a; font-weight: 600; text-align: center; margin-top: 10px; padding: 8px; background: #e8f7ef; border-radius: 8px; }
+  .empty-state { text-align: center; padding: 2.5rem 1rem; color: #aaa; font-size: 14px; line-height: 1.8; }
+  .empty-icon { font-size: 40px; display: block; margin-bottom: 8px; }
+  .result-section { background: #fff; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; box-shadow: 0 1px 4px rgba(0,0,0,.08); border: 2px solid #f0c040; }
+  .result-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
+  .result-btn { border: 2px solid #e5e7eb; border-radius: 10px; padding: .75rem; cursor: pointer; text-align: center; font-size: 14px; font-weight: 600; background: #fff; transition: all .15s; }
+  .result-btn:hover { border-color: #aaa; }
+  .result-banner { padding: 1rem; border-radius: 10px; text-align: center; font-size: 15px; font-weight: 700; margin-top: .5rem; }
+  .result-banner.success { background: #e8f7ef; color: #1a6b3a; border: 2px solid #1a6b3a; }
+  .result-banner.fail { background: #fff0ef; color: #c0392b; border: 2px solid #c0392b; }
+  /* 일정 */
+  .sch-sum-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; background: #f0faf4; border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
+  .sch-sum-item { text-align: center; }
+  .sch-sum-val { font-size: 18px; font-weight: 700; color: #1a6b3a; }
+  .sch-sum-lbl { font-size: 11px; color: #666; margin-top: 2px; }
+  .filter-wrap { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .filter-btn { padding: 5px 12px; border-radius: 20px; border: 1.5px solid #e5e7eb; background: #fff; font-size: 12px; cursor: pointer; color: #555; }
+  .filter-btn.active { background: #1a6b3a; color: #fff; border-color: #1a6b3a; }
+  .day-card { background: #fff; border-radius: 12px; padding: 1rem; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.06); border-left: 4px solid #1a6b3a; }
+  .day-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+  .day-title { font-size: 14px; font-weight: 700; color: #1a1a1a; }
+  .day-mountains { font-size: 13px; color: #1a6b3a; font-weight: 600; margin-bottom: 6px; }
+  .day-badge { font-size: 11px; background: #e8f7ef; color: #1a6b3a; padding: 2px 8px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
+  .day-meta { display: flex; gap: 10px; font-size: 11px; color: #777; flex-wrap: wrap; }
+  .day-lodge { font-size: 11px; color: #aaa; margin-top: 6px; border-top: 1px solid #f0f0f0; padding-top: 6px; }
+  .load-bar-wrap { background: #e5e7eb; border-radius: 4px; height: 5px; margin-top: 6px; overflow: hidden; }
+  .load-bar { height: 100%; border-radius: 4px; }
+  /* 배팅 비율 바 */
+  .progress-bar-wrap { background: #e5e7eb; border-radius: 20px; height: 10px; margin: .5rem 0; overflow: hidden; }
+  .progress-bar { height: 100%; border-radius: 20px; background: linear-gradient(90deg, #1a6b3a, #2d9e5f); transition: width .4s; }
+  .progress-labels { display: flex; justify-content: space-between; font-size: 11px; color: #888; }
+  /* 관리자 */
+  .admin-section { background: #fff; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; box-shadow: 0 1px 4px rgba(0,0,0,.08); border: 2px solid #e74c3c; }
+  .admin-login { display: flex; flex-direction: column; gap: 10px; }
+  .admin-login input { width: 100%; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #1a1a1a; outline: none; }
+  .admin-login input:focus { border-color: #e74c3c; }
+  .admin-login-btn { padding: 10px; border-radius: 8px; border: none; background: #e74c3c; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .admin-panel-content { display: none; }
+  .admin-panel-content.visible { display: block; }
+  .admin-action-btn { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #e74c3c; background: #fff; color: #e74c3c; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 10px; transition: all .15s; }
+  .admin-action-btn:hover { background: #fff0ef; }
+  .admin-action-btn.danger { background: #e74c3c; color: #fff; }
+  .admin-action-btn.danger:hover { background: #c0392b; }
+  .admin-bet-item { background: #fafafa; border: 1px solid #eee; border-radius: 10px; padding: .75rem 1rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .admin-delete-btn { background: none; border: 1px solid #e74c3c; color: #e74c3c; border-radius: 6px; padding: 3px 10px; font-size: 12px; cursor: pointer; }
+  .admin-delete-btn:hover { background: #fff0ef; }
+  .admin-logout-btn { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ddd; background: #fff; color: #888; font-size: 13px; cursor: pointer; margin-top: 4px; }
+  .admin-divider { border: none; border-top: 1px solid #eee; margin: 1rem 0; }
+  .admin-warning { background: #fff8e1; border: 1px solid #f0c040; border-radius: 8px; padding: .75rem; font-size: 12px; color: #7a6000; margin-bottom: 1rem; line-height: 1.6; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1a6b3a; color: #fff; padding: 10px 22px; border-radius: 30px; font-size: 14px; font-weight: 500; opacity: 0; transition: opacity .3s; z-index: 9999; pointer-events: none; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+  @media (max-width: 400px) { .stats-grid { grid-template-columns: 1fr; } .bet-options, .result-options { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div style="font-size:36px;margin-bottom:6px">&#127956;</div>
+  <h1>정상진 기술총괄 100대 명산 도전!</h1>
+  <p>34일간 국내 100대 명산 완등 도전기</p>
+  <div class="period-badge">&#128197; 2025년 7월 20일 &#8594; 8월 22일 (34일)</div>
+  <div class="header-stats">
+    <div><span class="header-stat-val">100개</span>목표 산</div>
+    <div><span class="header-stat-val">519km</span>총 거리</div>
+    <div><span class="header-stat-val">52,890m</span>획득고도</div>
+  </div>
+</header>
+
+<div class="stats-grid">
+  <div class="stat-card"><div class="stat-val" id="totalBetters">0명</div><div class="stat-lbl">배팅 참여</div></div>
+  <div class="stat-card"><div class="stat-val" id="totalAmount">0원</div><div class="stat-lbl">총 배팅 금액</div></div>
+  <div class="stat-card"><div class="stat-val" id="gearFund">0원</div><div class="stat-lbl">장비 지원금 (10%)</div></div>
+</div>
+
+<div class="main">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('bet')">&#127919; 배팅</button>
+    <button class="tab" onclick="switchTab('list')">&#128203; 현황</button>
+    <button class="tab" onclick="switchTab('schedule')">&#128197; 일정</button>
+    <button class="tab" onclick="switchTab('result')">&#127942; 결과</button>
+    <button class="tab" onclick="switchTab('admin')">&#128274; 관리자</button>
+  </div>
+
+  <div id="panel-bet" class="panel active">
+    <div class="section">
+      <div class="section-title">&#127919; 승패 예측 선택</div>
+      <div class="bet-options">
+        <button class="bet-btn" id="btn-success" onclick="selectBet('success')">
+          <div class="bet-icon">&#127942;</div>
+          <div class="bet-label">성공!</div>
+          <div class="bet-desc">8/22까지 100개 완등</div>
+          <div class="odds-badge odds-success" id="odds-success">배당 계산 중...</div>
+        </button>
+        <button class="bet-btn" id="btn-fail" onclick="selectBet('fail')">
+          <div class="bet-icon">&#128549;</div>
+          <div class="bet-label">실패</div>
+          <div class="bet-desc">도전 중 포기 또는 미달성</div>
+          <div class="odds-badge odds-fail" id="odds-fail">배당 계산 중...</div>
+        </button>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:50%"></div></div>
+      <div class="progress-labels"><span id="pct-success">성공 50%</span><span id="pct-fail">실패 50%</span></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:1rem">
+        <div style="background:#f0faf4;border-radius:10px;padding:.875rem;text-align:center">
+          <div style="font-size:11px;color:#888;margin-bottom:4px">성공 배팅 총액</div>
+          <div style="font-size:16px;font-weight:700;color:#1a6b3a" id="live-success-amt">0원</div>
+          <div style="font-size:11px;color:#1a6b3a;margin-top:2px" id="live-success-cnt">0명 참여</div>
+        </div>
+        <div style="background:#fff0ef;border-radius:10px;padding:.875rem;text-align:center">
+          <div style="font-size:11px;color:#888;margin-bottom:4px">실패 배팅 총액</div>
+          <div style="font-size:16px;font-weight:700;color:#c0392b" id="live-fail-amt">0원</div>
+          <div style="font-size:11px;color:#c0392b;margin-top:2px" id="live-fail-cnt">0명 참여</div>
+        </div>
+      </div>
+      <div style="background:#f9f9f9;border-radius:10px;padding:.875rem;margin-top:8px">
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:500">현재 기준 예상 수령액 (1만원 배팅 시)</div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;color:#1a6b3a">&#127942; 성공 맞추면</span>
+          <span style="font-size:14px;font-weight:700;color:#1a6b3a" id="live-if-success">계산 중...</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+          <span style="font-size:12px;color:#c0392b">&#128549; 실패 맞추면</span>
+          <span style="font-size:14px;font-weight:700;color:#c0392b" id="live-if-fail">계산 중...</span>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">&#9999;&#65039; 배팅 정보 입력</div>
+      <div class="input-group"><label for="betterName">이름</label><input type="text" id="betterName" placeholder="홍길동" oninput="checkSubmit()"></div>
+      <div class="input-group"><label for="betAmount">배팅 금액 (원, 최소 1,000원 / 최대 퇴직금 한도)</label><input type="number" id="betAmount" placeholder="10000" min="1000" step="1000" oninput="updatePreview()"><div style="font-size:11px;color:#c0392b;margin-top:4px">※ 최대 배팅 한도: 퇴직금 한도</div></div>
+      <div class="preview-box" id="preview">
+        <div class="preview-row"><span>내 배팅금액</span><span class="bold" id="prev-amount"></span></div>
+        <div class="preview-row"><span>장비 지원금 기여분 (10%)</span><span id="prev-gear"></span></div>
+        <div class="preview-row"><span>현재 예상 배당</span><span class="bold" id="prev-return"></span></div>
+      </div>
+      <button class="submit-btn" id="submitBtn" onclick="submitBet()" disabled>배팅 참여하기</button>
+      <p class="notice">배팅 금액의 10%는 정상진 기술총괄의 등산 장비 구매에 사용됩니다.<br>실제 배당은 도전 종료 후 정산됩니다.</p>
+    </div>
+  </div>
+
+  <div id="panel-list" class="panel">
+    <div class="section">
+      <div class="section-title">&#128203; 전체 배팅 현황</div>
+      <div class="bets-list" id="betsList"><div class="empty-state"><span class="empty-icon">&#9968;&#65039;</span>아직 배팅 참여자가 없습니다.<br>첫 번째 배터가 되어보세요!</div></div>
+      <div class="summary-box" id="summaryBox" style="display:none">
+        <div class="summary-row"><span>성공 배팅 합계</span><span id="sum-success">0원</span></div>
+        <div class="summary-row"><span>실패 배팅 합계</span><span id="sum-fail">0원</span></div>
+        <div class="summary-row total"><span>총 배팅 금액</span><span id="sum-total">0원</span></div>
+        <div class="fund-highlight" id="fund-display">장비 지원금: 0원</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-schedule" class="panel">
+    <div class="sch-sum-grid">
+      <div class="sch-sum-item"><div class="sch-sum-val">34일</div><div class="sch-sum-lbl">총 일정</div></div>
+      <div class="sch-sum-item"><div class="sch-sum-val">100개</div><div class="sch-sum-lbl">목표 산</div></div>
+      <div class="sch-sum-item"><div class="sch-sum-val">519.42km</div><div class="sch-sum-lbl">총 거리</div></div>
+      <div class="sch-sum-item"><div class="sch-sum-val">52,890m</div><div class="sch-sum-lbl">총 획득고도</div></div>
+    </div>
+    <div class="filter-wrap">
+      <button class="filter-btn active" onclick="filterSch('all',this)">전체</button>
+      <button class="filter-btn" onclick="filterSch('hard',this)">고난도 (부하 120+)</button>
+      <button class="filter-btn" onclick="filterSch('easy',this)">여유 (부하 100 미만)</button>
+    </div>
+    <div id="scheduleList"></div>
+  </div>
+
+  <div id="panel-result" class="panel">
+    <div class="result-section">
+      <div class="section-title">운영자 전용 - 결과 선언</div>
+      <p style="font-size:13px;color:#888;margin-bottom:1rem">도전 종료 후 실제 결과를 선택하면 승자와 배당금이 표시됩니다.</p>
+      <div id="resultInput">
+        <div class="result-options">
+          <button class="result-btn" onclick="declareResult('success')">성공 선언</button>
+          <button class="result-btn" onclick="declareResult('fail')">실패 선언</button>
+        </div>
+        <button style="width:100%;padding:8px;border-radius:8px;border:1.5px solid #e5e7eb;background:#fff;color:#c0392b;font-size:13px;cursor:pointer;margin-top:4px" onclick="resetResult()">결과 초기화</button>
+      </div>
+      <div id="resultBanner" style="display:none"></div>
+    </div>
+    <div class="section" id="winnerSection" style="display:none">
+      <div class="section-title">배당 정산 결과</div>
+      <div id="winnerList"></div>
+    </div>
+  </div>
+
+  <div id="panel-admin" class="panel">
+    <div class="admin-section">
+      <div class="section-title">관리자 패널</div>
+      <div id="adminLogin">
+        <p style="font-size:13px;color:#888;margin-bottom:.875rem">관리자 비밀번호를 입력하세요.</p>
+        <div class="admin-login">
+          <input type="password" id="adminPwInput" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doAdminLogin()">
+          <button class="admin-login-btn" onclick="doAdminLogin()">로그인</button>
+        </div>
+        <p id="loginError" style="color:#e74c3c;font-size:12px;margin-top:6px;display:none">비밀번호가 틀렸습니다.</p>
+      </div>
+      <div class="admin-panel-content" id="adminContent">
+        <div class="admin-warning">관리자 전용 메뉴입니다. 삭제된 데이터는 복구할 수 없습니다.</div>
+        <div class="section-title" style="margin-bottom:.75rem">개별 배팅 삭제</div>
+        <div id="adminBetList" style="margin-bottom:1rem;max-height:300px;overflow-y:auto"></div>
+        <hr class="admin-divider">
+        <div class="section-title" style="margin-bottom:.75rem">전체 초기화</div>
+        <button class="admin-action-btn" onclick="adminResetResult()">결과 선언 초기화</button>
+        <button class="admin-action-btn danger" onclick="adminResetAll()">전체 배팅 데이터 초기화</button>
+        <hr class="admin-divider">
+        <button class="admin-logout-btn" onclick="doAdminLogout()">로그아웃</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SCHEDULE=[
+{day:1,date:'7/20',mountains:'칠갑산, 오서산, 용봉산, (예산)가야산, 광덕산',count:5,dist:17.81,elev:1401,load:108.6,hike:'4:05',drive:'3:45',lodge:'집'},
+{day:2,date:'7/21',mountains:'계룡산, 대둔산, 운장산',count:3,dist:13.65,elev:1517,load:109.2,hike:'3:50',drive:'2:00',lodge:'운장산자연휴양림'},
+{day:3,date:'7/22',mountains:'구봉산, 마이산, 모악산',count:3,dist:11.84,elev:1533,load:106.3,hike:'3:45',drive:'1:10',lodge:'부안군 진서면 읍내 모텔'},
+{day:4,date:'7/23',mountains:'내변산, 선운산, 방장산, 백암산',count:4,dist:16.76,elev:1579,load:116.7,hike:'4:10',drive:'1:45',lodge:'백양관광호텔'},
+{day:5,date:'7/24',mountains:'내장산, 축령산, 불갑산, 무등산',count:4,dist:13.98,elev:1561,load:111.6,hike:'4:00',drive:'3:00',lodge:'도림사 국민관광단지'},
+{day:6,date:'7/25',mountains:'동악산, 조계산, 팔영산, 천관산',count:4,dist:15.52,elev:1650,load:119.7,hike:'4:15',drive:'4:15',lodge:'해남 송지면 한솔모텔'},
+{day:7,date:'7/26',mountains:'달마산, 두륜산, 덕룡산, 월출산',count:4,dist:14.70,elev:1760,load:123.8,hike:'4:25',drive:'1:45',lodge:'진틀 마을 민박'},
+{day:8,date:'7/27',mountains:'(광양)백운산, (지리산)반야봉',count:2,dist:20.70,elev:1431,load:115.0,hike:'3:55',drive:'1:35',lodge:'남원 산들민박'},
+{day:9,date:'7/28',mountains:'(지리산)바래봉, (지리산)천왕봉',count:2,dist:16.74,elev:1631,load:129.5,hike:'4:05',drive:'1:25',lodge:'산청버스터미널 주변'},
+{day:10,date:'7/29',mountains:'황매산, 장안산, 황석산',count:3,dist:13.55,elev:1390,load:101.9,hike:'3:35',drive:'2:25',lodge:'가야호텔'},
+{day:11,date:'7/30',mountains:'(합천)가야산, 덕유산, 천태산',count:3,dist:14.22,elev:1561,load:114.3,hike:'3:55',drive:'2:55',lodge:'무주로뎀펜션민박'},
+{day:12,date:'7/31',mountains:'민주지산, 황악산, 금오산',count:3,dist:13.55,elev:1739,load:122.4,hike:'3:40',drive:'2:00',lodge:'팔공산 온천관광단지 모텔'},
+{day:13,date:'8/1',mountains:'팔공산, 비슬산, 화왕산, 재약산',count:4,dist:16.88,elev:1462,load:112.4,hike:'4:05',drive:'4:00',lodge:'배네모텔 (행정마을)'},
+{day:14,date:'8/2',mountains:'신불산, 가지산, 천성산',count:3,dist:15.06,elev:1757,load:125.8,hike:'3:45',drive:'1:50',lodge:'범어사역 인근 모텔'},
+{day:15,date:'8/3',mountains:'금정산, 남산, 내연산',count:3,dist:21.20,elev:1611,load:126.7,hike:'4:05',drive:'2:10',lodge:'보경사 온천파크호텔'},
+{day:16,date:'8/4',mountains:'주왕산, 구병산, 속리산',count:3,dist:13.31,elev:1711,load:120.2,hike:'4:10',drive:'2:10',lodge:'화북면 인근 모텔/민박'},
+{day:17,date:'8/5',mountains:'청화산, 대야산, 칠보산',count:3,dist:15.25,elev:1592,load:115.3,hike:'4:00',drive:'1:35',lodge:'문경 버스터미널 근처'},
+{day:18,date:'8/6',mountains:'주흘산, 조령산, 도락산',count:3,dist:13.09,elev:1682,load:122.0,hike:'4:05',drive:'1:35',lodge:'신륵사 근처 계곡 민박'},
+{day:19,date:'8/7',mountains:'월악산, 금수산',count:2,dist:10.77,elev:1369,load:96.5,hike:'3:20',drive:'1:00',lodge:'영월군청 근처 모텔'},
+{day:20,date:'8/8',mountains:'태화산, 소백산, 함백산',count:3,dist:12.61,elev:1548,load:109.6,hike:'3:50',drive:'4:55',lodge:'태백시 드림모텔'},
+{day:21,date:'8/9',mountains:'태백산, 응봉산',count:2,dist:18.28,elev:1555,load:117.4,hike:'4:00',drive:'1:40',lodge:'광석나루터 인근 모텔/민박'},
+{day:22,date:'8/10',mountains:'청량산, 두타산',count:2,dist:14.48,elev:1518,load:107.3,hike:'3:40',drive:'1:45',lodge:'도계읍 태백여관'},
+{day:23,date:'8/11',mountains:'덕항산, 가리왕산, (동강)백운산',count:3,dist:14.01,elev:1613,load:114.1,hike:'4:05',drive:'3:05',lodge:'평창군청 인근'},
+{day:24,date:'8/12',mountains:'백덕산, 치악산',count:2,dist:17.01,elev:1721,load:126.4,hike:'4:15',drive:'0:55',lodge:'신림면 인근 민박 (풀잎향기)'},
+{day:25,date:'8/13',mountains:'(원주)감악산, 계방산, (오대산)비로봉',count:3,dist:12.84,elev:1355,load:98.6,hike:'3:30',drive:'2:45',lodge:'월정사 근처 민박'},
+{day:26,date:'8/14',mountains:'(오대산)노인봉, 방태산, 가리산',count:3,dist:17.97,elev:1659,load:123.4,hike:'4:15',drive:'3:35',lodge:'인제군청 인근 모텔'},
+{day:27,date:'8/15',mountains:'설악산, 오봉산',count:2,dist:12.44,elev:1639,load:115.4,hike:'4:00',drive:'1:30',lodge:'춘천MBC 근처 모텔'},
+{day:28,date:'8/16',mountains:'삼악산, 용화산, 연인산',count:3,dist:11.08,elev:1556,load:106.3,hike:'3:40',drive:'2:35',lodge:'명지산 생태 전시관 근처 민박'},
+{day:29,date:'8/17',mountains:'명지산, 화악산',count:2,dist:19.01,elev:1463,load:109.9,hike:'3:45',drive:'1:00',lodge:'잉카모텔 (포천)',note:'Day 29 GPX 업데이트 반영'},
+{day:30,date:'8/18',mountains:'운악산, 소요산, (파주)감악산, 마니산',count:4,dist:15.61,elev:1663,load:120.6,hike:'4:15',drive:'3:40',lodge:'우이동 주민센터 인근 모텔'},
+{day:31,date:'8/19',mountains:'북한산, 수락산, 도봉산',count:3,dist:13.76,elev:1741,load:122.4,hike:'4:05',drive:'0:40',lodge:'천마산역 근처 이모텔'},
+{day:32,date:'8/20',mountains:'천마산, 유명산, 용문산',count:3,dist:22.14,elev:1540,load:124.5,hike:'4:30',drive:'0:55',lodge:'한덕유원지 모텔'},
+{day:33,date:'8/21',mountains:'팔봉산, 청계산, 관악산',count:3,dist:10.28,elev:1183,load:84.3,hike:'2:25',drive:'1:50',lodge:'집'},
+{day:34,date:'8/22',mountains:'한라산',count:1,dist:19.32,elev:1199,load:100.0,hike:'3:35',drive:'0:00',lodge:'TBD'}
+];
+const MAX_LOAD=Math.max(...SCHEDULE.map(d=>d.load));
+
+function renderSchedule(filter){
+  let data=SCHEDULE;
+  if(filter==='hard')data=SCHEDULE.filter(d=>d.load>=120);
+  if(filter==='easy')data=SCHEDULE.filter(d=>d.load<100);
+  let list=document.getElementById('scheduleList');
+  list.innerHTML=data.map(d=>{
+    let pct=Math.round(d.load/MAX_LOAD*100);
+    let col=d.load>=120?'#c0392b':d.load>=110?'#e67e22':'#1a6b3a';
+    let badge=d.load>=120?'고난도':d.load<100?'여유':'보통';
+    let noteHtml=d.note?'<div style="font-size:11px;color:#888;margin-top:4px">'+d.note+'</div>':'';
+    return '<div class="day-card" style="border-left-color:'+col+'">'
+      +'<div class="day-header"><div><div class="day-title">Day '+d.day+' · '+d.date+'</div>'
+      +'<div class="day-mountains">'+d.mountains+'</div></div>'
+      +'<div class="day-badge">'+badge+'</div></div>'
+      +'<div class="day-meta"><span>산 '+d.count+'개</span><span>'+d.dist+'km</span>'
+      +'<span>고도 '+d.elev.toLocaleString()+'m</span><span>등산 '+d.hike+'</span><span>운전 '+d.drive+'</span></div>'
+      +'<div class="load-bar-wrap"><div class="load-bar" style="width:'+pct+'%;background:'+col+'"></div></div>'
+      +'<div style="font-size:11px;color:'+col+';font-weight:600;margin-top:2px">부하지수 '+d.load+'</div>'
+      +'<div class="day-lodge">숙소: '+d.lodge+'</div>'+noteHtml+'</div>';
+  }).join('');
+}
+function filterSch(type,btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.className='filter-btn');
+  btn.className='filter-btn active';
+  renderSchedule(type);
+}
+
+let bets=JSON.parse(localStorage.getItem('mountain_bets_v2')||'[]');
+let selectedChoice=null;
+let declaredResult=localStorage.getItem('mountain_result')||null;
+function save(){localStorage.setItem('mountain_bets_v2',JSON.stringify(bets));}
+function fmt(n){return Math.round(n).toLocaleString('ko-KR')+'원';}
+function calcOdds(){
+  let s=0,f=0;
+  bets.forEach(b=>{if(b.choice==='success')s+=b.amount;else f+=b.amount;});
+  let t=s+f,p=t*0.9;
+  return{sOdds:Math.max(1.05,s>0?p/s:2),fOdds:Math.max(1.05,f>0?p/f:2),sTotal:s,fTotal:f,total:t};
+}
+function updateStats(){
+  let t=bets.reduce((s,b)=>s+b.amount,0);
+  document.getElementById('totalBetters').textContent=bets.length+'명';
+  document.getElementById('totalAmount').textContent=fmt(t);
+  document.getElementById('gearFund').textContent=fmt(t*0.1);
+  let {sOdds,fOdds,sTotal,fTotal,total:tt}=calcOdds();
+  document.getElementById('odds-success').textContent='x'+sOdds.toFixed(2)+' 배당';
+  document.getElementById('odds-fail').textContent='x'+fOdds.toFixed(2)+' 배당';
+  let sp=tt>0?Math.round(sTotal/tt*100):50;
+  document.getElementById('progressBar').style.width=sp+'%';
+  document.getElementById('pct-success').textContent='성공 '+sp+'%';
+  document.getElementById('pct-fail').textContent='실패 '+(100-sp)+'%';
+  // 라이브 배팅 현황 카드
+  let sCnt=bets.filter(b=>b.choice==='success').length;
+  let fCnt=bets.filter(b=>b.choice==='fail').length;
+  document.getElementById('live-success-amt').textContent=fmt(sTotal);
+  document.getElementById('live-success-cnt').textContent=sCnt+'명 참여';
+  document.getElementById('live-fail-amt').textContent=fmt(fTotal);
+  document.getElementById('live-fail-cnt').textContent=fCnt+'명 참여';
+  const BASE=10000;
+  document.getElementById('live-if-success').textContent=fmt(BASE*sOdds)+' (x'+sOdds.toFixed(2)+')';
+  document.getElementById('live-if-fail').textContent=fmt(BASE*fOdds)+' (x'+fOdds.toFixed(2)+')';
+  updatePreview();
+}
+function selectBet(c){
+  selectedChoice=c;
+  document.getElementById('btn-success').className='bet-btn'+(c==='success'?' selected-success':'');
+  document.getElementById('btn-fail').className='bet-btn'+(c==='fail'?' selected-fail':'');
+  checkSubmit();updatePreview();
+}
+function updatePreview(){
+  let amt=parseInt(document.getElementById('betAmount').value)||0;
+  let p=document.getElementById('preview');
+  if(!amt||!selectedChoice){p.style.display='none';return;}
+  let {sOdds,fOdds}=calcOdds();
+  let odds=selectedChoice==='success'?sOdds:fOdds;
+  document.getElementById('prev-amount').textContent=fmt(amt);
+  document.getElementById('prev-gear').textContent=fmt(amt*0.1);
+  document.getElementById('prev-return').textContent=fmt(amt*odds)+' (x'+odds.toFixed(2)+')';
+  p.style.display='block';checkSubmit();
+}
+function checkSubmit(){
+  let n=document.getElementById('betterName').value.trim();
+  let a=parseInt(document.getElementById('betAmount').value)||0;
+  document.getElementById('submitBtn').disabled=!(n&&a>=1000&&selectedChoice);
+}
+function submitBet(){
+  let n=document.getElementById('betterName').value.trim();
+  let a=parseInt(document.getElementById('betAmount').value);
+  if(!n||!a||!selectedChoice)return;
+  bets.push({name:n,amount:a,choice:selectedChoice,time:new Date().toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})});
+  save();
+  document.getElementById('betterName').value='';
+  document.getElementById('betAmount').value='';
+  selectedChoice=null;
+  document.getElementById('btn-success').className='bet-btn';
+  document.getElementById('btn-fail').className='bet-btn';
+  document.getElementById('preview').style.display='none';
+  document.getElementById('submitBtn').disabled=true;
+  updateStats();renderList();
+  showToast('배팅 완료! 정상진 기술총괄 화이팅!');
+}
+function renderList(){
+  let list=document.getElementById('betsList'),sBox=document.getElementById('summaryBox');
+  if(bets.length===0){list.innerHTML='<div class="empty-state"><span class="empty-icon">&#9968;&#65039;</span>아직 배팅 참여자가 없습니다.<br>첫 번째 배터가 되어보세요!</div>';sBox.style.display='none';return;}
+  let s=0,f=0;
+  list.innerHTML=bets.slice().reverse().map(b=>{
+    if(b.choice==='success')s+=b.amount;else f+=b.amount;
+    return '<div class="bet-item"><div><div class="bet-name">'+b.name+'</div><div class="bet-time">'+b.time+'</div></div>'
+      +'<div style="text-align:right"><div class="bet-amount">'+b.amount.toLocaleString()+'원</div>'
+      +'<div class="bet-choice-badge '+(b.choice==='success'?'badge-success':'badge-fail')+'">'+(b.choice==='success'?'성공 예측':'실패 예측')+'</div></div></div>';
+  }).join('');
+  let tt=s+f;
+  document.getElementById('sum-success').textContent=fmt(s);
+  document.getElementById('sum-fail').textContent=fmt(f);
+  document.getElementById('sum-total').textContent=fmt(tt);
+  document.getElementById('fund-display').textContent='장비 지원금: '+fmt(tt*0.1);
+  sBox.style.display='block';
+}
+function declareResult(r){
+  if(!confirm((r==='success'?'성공':'실패')+'으로 결과를 선언하시겠습니까?'))return;
+  declaredResult=r;localStorage.setItem('mountain_result',r);renderResult();showToast('결과가 선언되었습니다!');
+}
+function resetResult(){
+  if(!confirm('결과를 초기화하시겠습니까?'))return;
+  declaredResult=null;localStorage.removeItem('mountain_result');renderResult();
+}
+function renderResult(){
+  let ban=document.getElementById('resultBanner'),inp=document.getElementById('resultInput'),ws=document.getElementById('winnerSection');
+  if(!declaredResult){ban.style.display='none';inp.style.display='block';ws.style.display='none';return;}
+  inp.style.display='none';ban.style.display='block';
+  ban.innerHTML='<div class="result-banner '+declaredResult+'">'+(declaredResult==='success'?'성공! 정상진 기술총괄이 해냈습니다!':'아쉽게도 도전 실패...')+'</div>';
+  let ww=bets.filter(b=>b.choice===declaredResult),ll=bets.filter(b=>b.choice!==declaredResult);
+  let lt=ll.reduce((s,b)=>s+b.amount,0),wt=ww.reduce((s,b)=>s+b.amount,0),pool=(lt+wt)*0.9;
+  ws.style.display='block';
+  if(ww.length===0){document.getElementById('winnerList').innerHTML='<p style="color:#888;font-size:14px;text-align:center;padding:1rem">해당 결과를 예측한 배터가 없습니다.</p>';return;}
+  document.getElementById('winnerList').innerHTML='<p style="font-size:13px;color:#555;margin-bottom:.75rem">적중자 '+ww.length+'명 / 배당 풀: '+fmt(pool)+'</p>'
+    +ww.map(b=>{let pay=Math.round(pool*(wt>0?b.amount/wt:0));return '<div class="bet-item" style="margin-bottom:6px"><div><div class="bet-name">'+b.name+'</div><div class="bet-time">배팅: '+fmt(b.amount)+'</div></div><div style="text-align:right"><div class="bet-amount" style="color:#1a6b3a">'+fmt(pay)+'</div><div style="font-size:11px;color:#1a6b3a">+'+fmt(pay-b.amount)+' 수익</div></div></div>';}).join('')
+    +'<div style="font-size:11px;color:#aaa;text-align:center;margin-top:8px">나머지 10%('+fmt((lt+wt)*0.1)+')는 장비 지원금으로 사용</div>';
+}
+const ADMIN_PW='sangjin2025';
+let adminLoggedIn=false;
+function doAdminLogin(){
+  let pw=document.getElementById('adminPwInput').value;
+  if(pw===ADMIN_PW){
+    adminLoggedIn=true;
+    document.getElementById('adminLogin').style.display='none';
+    document.getElementById('adminContent').className='admin-panel-content visible';
+    document.getElementById('loginError').style.display='none';
+    document.getElementById('adminPwInput').value='';
+    renderAdminBetList();
+  }else{document.getElementById('loginError').style.display='block';document.getElementById('adminPwInput').value='';}
+}
+function doAdminLogout(){
+  adminLoggedIn=false;
+  document.getElementById('adminLogin').style.display='block';
+  document.getElementById('adminContent').className='admin-panel-content';
+}
+function renderAdminBetList(){
+  let el=document.getElementById('adminBetList');
+  if(bets.length===0){el.innerHTML='<p style="color:#aaa;font-size:13px;text-align:center;padding:1rem">배팅 데이터가 없습니다.</p>';return;}
+  el.innerHTML=bets.map((b,i)=>'<div class="admin-bet-item"><div><div style="font-size:13px;font-weight:600">'+b.name+'</div><div style="font-size:11px;color:#aaa">'+b.time+' · '+(b.choice==='success'?'성공':'실패')+' · '+b.amount.toLocaleString()+'원</div></div><button class="admin-delete-btn" onclick="adminDeleteBet('+i+')">삭제</button></div>').join('');
+}
+function adminDeleteBet(i){
+  let b=bets[i];
+  if(!confirm('"'+b.name+'"의 배팅('+b.amount.toLocaleString()+'원)을 삭제하시겠습니까?'))return;
+  bets.splice(i,1);save();updateStats();renderAdminBetList();showToast('배팅 항목이 삭제되었습니다.');
+}
+function adminResetResult(){
+  if(!confirm('결과 선언을 초기화하시겠습니까?'))return;
+  declaredResult=null;localStorage.removeItem('mountain_result');showToast('결과 선언이 초기화되었습니다.');
+}
+function adminResetAll(){
+  if(!confirm('전체 배팅 데이터를 초기화하시겠습니까?\n이 작업은 되돌릴 수 없습니다.'))return;
+  if(!confirm('정말로 삭제하시겠습니까? 모든 배팅 내역이 사라집니다.'))return;
+  bets=[];declaredResult=null;
+  localStorage.removeItem('mountain_bets_v2');localStorage.removeItem('mountain_result');
+  updateStats();renderAdminBetList();showToast('전체 데이터가 초기화되었습니다.');
+}
+const TABS=['bet','list','schedule','result','admin'];
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.className='tab'+(TABS[i]===tab?' active':''));
+  TABS.forEach(p=>{document.getElementById('panel-'+p).className='panel'+(p===tab?' active':'');});
+  if(tab==='list')renderList();
+  if(tab==='schedule')renderSchedule('all');
+  if(tab==='result')renderResult();
+  if(tab==='admin'&&adminLoggedIn)renderAdminBetList();
+}
+function showToast(msg){
+  let t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast show';
+  setTimeout(()=>t.className='toast',2500);
+}
+updateStats();
+</script>
+</body>
+</html>
