@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏔️ 정상진 기술총괄 100대 명산 도전 배팅</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans KR', sans-serif; background: #f4f6f8; color: #1a1a1a; min-height: 100vh; }
+
+  header { background: linear-gradient(135deg, #1a6b3a 0%, #2d9e5f 100%); color: #fff; padding: 1.5rem 1rem; text-align: center; }
+  header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  header p { font-size: 13px; opacity: .85; }
+  .period-badge { display: inline-block; background: rgba(255,255,255,.2); color: #fff; font-size: 12px; padding: 4px 12px; border-radius: 20px; margin-top: 8px; border: 1px solid rgba(255,255,255,.3); }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; padding: 1rem; max-width: 640px; margin: 0 auto; }
+  .stat-card { background: #fff; border-radius: 12px; padding: 1rem; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .stat-val { font-size: 20px; font-weight: 700; color: #1a6b3a; }
+  .stat-lbl { font-size: 11px; color: #777; margin-top: 3px; }
+
+  .main { max-width: 640px; margin: 0 auto; padding: 0 1rem 2rem; }
+
+  .tabs { display: flex; border-bottom: 2px solid #e5e7eb; margin-bottom: 1rem; }
+  .tab { flex: 1; padding: 10px; text-align: center; font-size: 14px; font-weight: 500; cursor: pointer; color: #888; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+  .tab.active { color: #1a6b3a; border-bottom-color: #1a6b3a; }
+
+  .panel { display: none; } .panel.active { display: block; }
+
+  .section { background: #fff; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .section-title { font-size: 15px; font-weight: 600; color: #1a1a1a; margin-bottom: 1rem; }
+
+  .bet-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
+  .bet-btn { border: 2px solid #e5e7eb; border-radius: 12px; padding: 1rem .75rem; cursor: pointer; text-align: center; background: #fff; transition: all .15s; }
+  .bet-btn:hover { border-color: #aaa; }
+  .bet-btn.selected-success { border-color: #1a6b3a; background: #f0faf4; }
+  .bet-btn.selected-fail { border-color: #c0392b; background: #fff5f5; }
+  .bet-icon { font-size: 28px; margin-bottom: 4px; }
+  .bet-label { font-size: 15px; font-weight: 600; color: #1a1a1a; }
+  .bet-desc { font-size: 11px; color: #888; margin-top: 2px; }
+  .odds-badge { font-size: 12px; font-weight: 600; margin-top: 8px; padding: 3px 10px; border-radius: 20px; display: inline-block; }
+  .odds-success { background: #e8f7ef; color: #1a6b3a; }
+  .odds-fail { background: #fff0ef; color: #c0392b; }
+
+  .input-group { margin-bottom: .875rem; }
+  .input-group label { display: block; font-size: 13px; color: #555; margin-bottom: 4px; font-weight: 500; }
+  .input-group input { width: 100%; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #1a1a1a; outline: none; transition: border-color .15s; }
+  .input-group input:focus { border-color: #1a6b3a; }
+
+  .preview-box { background: #f0faf4; border: 1px solid #b7dfca; border-radius: 8px; padding: .875rem; margin-bottom: .875rem; display: none; }
+  .preview-row { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; color: #444; }
+  .preview-row .bold { font-weight: 600; color: #1a6b3a; }
+
+  .submit-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; background: #1a6b3a; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; transition: background .15s; }
+  .submit-btn:hover { background: #155c30; }
+  .submit-btn:disabled { background: #c5c5c5; cursor: not-allowed; }
+
+  .notice { font-size: 11px; color: #999; text-align: center; margin-top: .625rem; line-height: 1.6; }
+
+  .bets-list { display: flex; flex-direction: column; gap: 8px; }
+  .bet-item { background: #fafafa; border: 1px solid #eee; border-radius: 10px; padding: .875rem 1rem; display: flex; justify-content: space-between; align-items: center; }
+  .bet-name { font-size: 14px; font-weight: 600; color: #1a1a1a; }
+  .bet-time { font-size: 11px; color: #aaa; margin-top: 2px; }
+  .bet-amount { font-size: 15px; font-weight: 700; color: #1a1a1a; text-align: right; }
+  .bet-choice-badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; display: inline-block; margin-top: 3px; }
+  .badge-success { background: #e8f7ef; color: #1a6b3a; }
+  .badge-fail { background: #fff0ef; color: #c0392b; }
+
+  .summary-box { background: #f9f9f9; border-radius: 10px; padding: 1rem; margin-top: .875rem; border: 1px solid #eee; }
+  .summary-row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; color: #555; }
+  .summary-row.total { font-weight: 700; font-size: 14px; color: #1a1a1a; border-top: 1px solid #e5e7eb; margin-top: 6px; padding-top: 8px; }
+  .fund-highlight { font-size: 13px; color: #1a6b3a; font-weight: 600; text-align: center; margin-top: 10px; padding: 8px; background: #e8f7ef; border-radius: 8px; }
+
+  .empty-state { text-align: center; padding: 2.5rem 1rem; color: #aaa; font-size: 14px; line-height: 1.8; }
+  .empty-icon { font-size: 40px; display: block; margin-bottom: 8px; }
+
+  /* 결과 선언 섹션 */
+  .result-section { background: #fff; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; box-shadow: 0 1px 4px rgba(0,0,0,.08); border: 2px solid #f0c040; }
+  .result-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
+  .result-btn { border: 2px solid #e5e7eb; border-radius: 10px; padding: .75rem; cursor: pointer; text-align: center; font-size: 14px; font-weight: 600; background: #fff; transition: all .15s; }
+  .result-btn:hover { border-color: #aaa; }
+  .result-btn.r-success { border-color: #1a6b3a; background: #e8f7ef; color: #1a6b3a; }
+  .result-btn.r-fail { border-color: #c0392b; background: #fff0ef; color: #c0392b; }
+  .result-banner { padding: 1rem; border-radius: 10px; text-align: center; font-size: 15px; font-weight: 700; margin-top: .5rem; }
+  .result-banner.success { background: #e8f7ef; color: #1a6b3a; border: 2px solid #1a6b3a; }
+  .result-banner.fail { background: #fff0ef; color: #c0392b; border: 2px solid #c0392b; }
+
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1a6b3a; color: #fff; padding: 10px 22px; border-radius: 30px; font-size: 14px; font-weight: 500; opacity: 0; transition: opacity .3s; z-index: 9999; pointer-events: none; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+
+  .progress-bar-wrap { background: #e5e7eb; border-radius: 20px; height: 10px; margin: .5rem 0; overflow: hidden; }
+  .progress-bar { height: 100%; border-radius: 20px; background: linear-gradient(90deg, #1a6b3a, #2d9e5f); transition: width .4s; }
+  .progress-labels { display: flex; justify-content: space-between; font-size: 11px; color: #888; }
+
+  @media (max-width: 400px) {
+    .stats-grid { grid-template-columns: 1fr; }
+    .bet-options, .result-options { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div style="font-size:36px;margin-bottom:6px">🏔️</div>
+  <h1>정상진 기술총괄 100대 명산 도전!</h1>
+  <p>30일 안에 국내 100대 명산을 완등할 수 있을까요?</p>
+  <div class="period-badge">📅 2025년 7월 20일 → 8월 18일 (30일)</div>
+</header>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-val" id="totalBetters">0명</div>
+    <div class="stat-lbl">참여 인원</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val" id="totalAmount">0원</div>
+    <div class="stat-lbl">총 배팅 금액</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val" id="gearFund">0원</div>
+    <div class="stat-lbl">장비 지원금 (10%)</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('bet')">🎯 배팅하기</button>
+    <button class="tab" onclick="switchTab('list')">📋 배팅 현황</button>
+    <button class="tab" onclick="switchTab('result')">🏆 결과</button>
+  </div>
+
+  <!-- 배팅하기 탭 -->
+  <div id="panel-bet" class="panel active">
+    <div class="section">
+      <div class="section-title">🎯 승패 예측 선택</div>
+      <div class="bet-options">
+        <button class="bet-btn" id="btn-success" onclick="selectBet('success')">
+          <div class="bet-icon">🏆</div>
+          <div class="bet-label">성공!</div>
+          <div class="bet-desc">30일 내 100개 완등</div>
+          <div class="odds-badge odds-success" id="odds-success">배당 계산 중...</div>
+        </button>
+        <button class="bet-btn" id="btn-fail" onclick="selectBet('fail')">
+          <div class="bet-icon">😥</div>
+          <div class="bet-label">실패</div>
+          <div class="bet-desc">도전 중 포기 또는 미달성</div>
+          <div class="odds-badge odds-fail" id="odds-fail">배당 계산 중...</div>
+        </button>
+      </div>
+
+      <!-- 성공/실패 배팅 비율 바 -->
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" id="progressBar" style="width:50%"></div>
+      </div>
+      <div class="progress-labels">
+        <span id="pct-success">성공 50%</span>
+        <span id="pct-fail">실패 50%</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">✏️ 배팅 정보 입력</div>
+      <div class="input-group">
+        <label for="betterName">이름</label>
+        <input type="text" id="betterName" placeholder="홍길동" oninput="checkSubmit()">
+      </div>
+      <div class="input-group">
+        <label for="betAmount">배팅 금액 (원, 최소 1,000원)</label>
+        <input type="number" id="betAmount" placeholder="10000" min="1000" step="1000" oninput="updatePreview()">
+      </div>
+
+      <div class="preview-box" id="preview">
+        <div class="preview-row"><span>💰 내 배팅금액</span><span class="bold" id="prev-amount"></span></div>
+        <div class="preview-row"><span>🎽 장비 지원금 기여분 (10%)</span><span id="prev-gear"></span></div>
+        <div class="preview-row"><span>📈 현재 예상 배당</span><span class="bold" id="prev-return"></span></div>
+      </div>
+
+      <button class="submit-btn" id="submitBtn" onclick="submitBet()" disabled>배팅 참여하기</button>
+      <p class="notice">⚠️ 배팅 금액의 10%는 정상진 기술총괄의 등산 장비 구매에 사용됩니다.<br>결과에 따른 실제 배당은 도전 종료 후 정산됩니다.</p>
+    </div>
+  </div>
+
+  <!-- 배팅 현황 탭 -->
+  <div id="panel-list" class="panel">
+    <div class="section">
+      <div class="section-title">📋 전체 배팅 현황</div>
+      <div class="bets-list" id="betsList">
+        <div class="empty-state">
+          <span class="empty-icon">⛰️</span>
+          아직 배팅 참여자가 없습니다.<br>첫 번째 배터가 되어보세요!
+        </div>
+      </div>
+      <div class="summary-box" id="summaryBox" style="display:none">
+        <div class="summary-row"><span>🏆 성공 배팅 합계</span><span id="sum-success">0원</span></div>
+        <div class="summary-row"><span>😥 실패 배팅 합계</span><span id="sum-fail">0원</span></div>
+        <div class="summary-row total"><span>총 배팅 금액</span><span id="sum-total">0원</span></div>
+        <div class="fund-highlight" id="fund-display">🎽 장비 지원금: 0원</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 결과 탭 -->
+  <div id="panel-result" class="panel">
+    <div class="result-section">
+      <div class="section-title">🔑 운영자 전용 — 결과 선언</div>
+      <p style="font-size:13px;color:#888;margin-bottom:1rem">도전 종료 후 실제 결과를 선택하면 승자와 배당금이 표시됩니다.</p>
+      <div id="resultInput">
+        <div class="result-options">
+          <button class="result-btn" onclick="declareResult('success')">🏆 성공 선언</button>
+          <button class="result-btn" onclick="declareResult('fail')">😥 실패 선언</button>
+        </div>
+        <button style="width:100%;padding:8px;border-radius:8px;border:1.5px solid #e5e7eb;background:#fff;color:#c0392b;font-size:13px;cursor:pointer;margin-top:4px" onclick="resetResult()">결과 초기화</button>
+      </div>
+      <div id="resultBanner" style="display:none"></div>
+    </div>
+
+    <div class="section" id="winnerSection" style="display:none">
+      <div class="section-title">🎉 배당 정산 결과</div>
+      <div id="winnerList"></div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let bets = JSON.parse(localStorage.getItem('mountain_bets_v2') || '[]');
+  let selectedChoice = null;
+  let declaredResult = localStorage.getItem('mountain_result') || null;
+
+  function save() {
+    localStorage.setItem('mountain_bets_v2', JSON.stringify(bets));
+  }
+
+  function fmt(n) {
+    return Math.round(n).toLocaleString('ko-KR') + '원';
+  }
+
+  function calcOdds() {
+    let sTotal = 0, fTotal = 0;
+    bets.forEach(b => { if (b.choice === 'success') sTotal += b.amount; else fTotal += b.amount; });
+    let total = sTotal + fTotal;
+    let pool = total * 0.9;
+    let sOdds = sTotal > 0 ? pool / sTotal : 2.0;
+    let fOdds = fTotal > 0 ? pool / fTotal : 2.0;
+    return { sOdds: Math.max(1.05, sOdds), fOdds: Math.max(1.05, fOdds), sTotal, fTotal, total };
+  }
+
+  function updateStats() {
+    let total = bets.reduce((s, b) => s + b.amount, 0);
+    document.getElementById('totalBetters').textContent = bets.length + '명';
+    document.getElementById('totalAmount').textContent = fmt(total);
+    document.getElementById('gearFund').textContent = fmt(total * 0.1);
+
+    let { sOdds, fOdds, sTotal, fTotal, total: t } = calcOdds();
+    document.getElementById('odds-success').textContent = 'x' + sOdds.toFixed(2) + ' 배당';
+    document.getElementById('odds-fail').textContent = 'x' + fOdds.toFixed(2) + ' 배당';
+
+    let sPct = t > 0 ? Math.round(sTotal / t * 100) : 50;
+    let fPct = 100 - sPct;
+    document.getElementById('progressBar').style.width = sPct + '%';
+    document.getElementById('pct-success').textContent = '🏆 성공 ' + sPct + '%';
+    document.getElementById('pct-fail').textContent = '😥 실패 ' + fPct + '%';
+
+    updatePreview();
+  }
+
+  function selectBet(choice) {
+    selectedChoice = choice;
+    document.getElementById('btn-success').className = 'bet-btn' + (choice === 'success' ? ' selected-success' : '');
+    document.getElementById('btn-fail').className = 'bet-btn' + (choice === 'fail' ? ' selected-fail' : '');
+    checkSubmit();
+    updatePreview();
+  }
+
+  function updatePreview() {
+    let amt = parseInt(document.getElementById('betAmount').value) || 0;
+    let preview = document.getElementById('preview');
+    if (!amt || !selectedChoice) { preview.style.display = 'none'; return; }
+    let { sOdds, fOdds } = calcOdds();
+    let odds = selectedChoice === 'success' ? sOdds : fOdds;
+    document.getElementById('prev-amount').textContent = fmt(amt);
+    document.getElementById('prev-gear').textContent = fmt(amt * 0.1);
+    document.getElementById('prev-return').textContent = fmt(amt * odds) + ' (x' + odds.toFixed(2) + ')';
+    preview.style.display = 'block';
+    checkSubmit();
+  }
+
+  function checkSubmit() {
+    let name = document.getElementById('betterName').value.trim();
+    let amt = parseInt(document.getElementById('betAmount').value) || 0;
+    document.getElementById('submitBtn').disabled = !(name && amt >= 1000 && selectedChoice);
+  }
+
+  function submitBet() {
+    let name = document.getElementById('betterName').value.trim();
+    let amt = parseInt(document.getElementById('betAmount').value);
+    if (!name || !amt || !selectedChoice) return;
+    bets.push({ name, amount: amt, choice: selectedChoice, time: new Date().toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) });
+    save();
+    document.getElementById('betterName').value = '';
+    document.getElementById('betAmount').value = '';
+    selectedChoice = null;
+    document.getElementById('btn-success').className = 'bet-btn';
+    document.getElementById('btn-fail').className = 'bet-btn';
+    document.getElementById('preview').style.display = 'none';
+    document.getElementById('submitBtn').disabled = true;
+    updateStats();
+    renderList();
+    showToast('🎉 배팅 완료! 정상진 기술총괄 화이팅!');
+  }
+
+  function renderList() {
+    let list = document.getElementById('betsList');
+    let sBox = document.getElementById('summaryBox');
+    if (bets.length === 0) {
+      list.innerHTML = '<div class="empty-state"><span class="empty-icon">⛰️</span>아직 배팅 참여자가 없습니다.<br>첫 번째 배터가 되어보세요!</div>';
+      sBox.style.display = 'none';
+      return;
+    }
+    let sTotal = 0, fTotal = 0;
+    list.innerHTML = bets.slice().reverse().map(b => {
+      if (b.choice === 'success') sTotal += b.amount; else fTotal += b.amount;
+      return `<div class="bet-item">
+        <div>
+          <div class="bet-name">${b.name}</div>
+          <div class="bet-time">${b.time}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="bet-amount">${b.amount.toLocaleString()}원</div>
+          <div class="bet-choice-badge ${b.choice === 'success' ? 'badge-success' : 'badge-fail'}">${b.choice === 'success' ? '🏆 성공 예측' : '😥 실패 예측'}</div>
+        </div>
+      </div>`;
+    }).join('');
+    let total = sTotal + fTotal;
+    document.getElementById('sum-success').textContent = fmt(sTotal);
+    document.getElementById('sum-fail').textContent = fmt(fTotal);
+    document.getElementById('sum-total').textContent = fmt(total);
+    document.getElementById('fund-display').textContent = '🎽 정상진 기술총괄 장비 지원금: ' + fmt(total * 0.1);
+    sBox.style.display = 'block';
+  }
+
+  function declareResult(result) {
+    if (!confirm((result === 'success' ? '🏆 성공' : '😥 실패') + '으로 결과를 선언하시겠습니까?')) return;
+    declaredResult = result;
+    localStorage.setItem('mountain_result', result);
+    renderResult();
+    showToast('결과가 선언되었습니다!');
+  }
+
+  function resetResult() {
+    if (!confirm('결과를 초기화하시겠습니까?')) return;
+    declaredResult = null;
+    localStorage.removeItem('mountain_result');
+    renderResult();
+  }
+
+  function renderResult() {
+    let banner = document.getElementById('resultBanner');
+    let input = document.getElementById('resultInput');
+    let winSec = document.getElementById('winnerSection');
+    if (!declaredResult) {
+      banner.style.display = 'none';
+      input.style.display = 'block';
+      winSec.style.display = 'none';
+      return;
+    }
+    input.style.display = 'none';
+    banner.style.display = 'block';
+    let isSuccess = declaredResult === 'success';
+    banner.innerHTML = `<div class="result-banner ${declaredResult}">
+      ${isSuccess ? '🏆 성공! 정상진 기술총괄이 해냈습니다!' : '😥 아쉽게도 도전 실패...'}
+    </div>`;
+
+    // 배당 계산
+    let winners = bets.filter(b => b.choice === declaredResult);
+    let losers = bets.filter(b => b.choice !== declaredResult);
+    let loserTotal = losers.reduce((s, b) => s + b.amount, 0);
+    let winnerTotal = winners.reduce((s, b) => s + b.amount, 0);
+    let pool = (loserTotal + winnerTotal) * 0.9;
+
+    winSec.style.display = 'block';
+    if (winners.length === 0) {
+      document.getElementById('winnerList').innerHTML = '<p style="color:#888;font-size:14px;text-align:center;padding:1rem">해당 결과를 예측한 배터가 없습니다.</p>';
+      return;
+    }
+    document.getElementById('winnerList').innerHTML = `
+      <p style="font-size:13px;color:#555;margin-bottom:.75rem">🎯 적중자 ${winners.length}명 / 총 배당 풀: ${fmt(pool)} (전체 배팅금의 90%)</p>
+      ${winners.map(b => {
+        let ratio = winnerTotal > 0 ? b.amount / winnerTotal : 0;
+        let payout = Math.round(pool * ratio);
+        let profit = payout - b.amount;
+        return `<div class="bet-item" style="margin-bottom:6px">
+          <div>
+            <div class="bet-name">🎉 ${b.name}</div>
+            <div class="bet-time">배팅: ${fmt(b.amount)}</div>
+          </div>
+          <div style="text-align:right">
+            <div class="bet-amount" style="color:#1a6b3a">${fmt(payout)}</div>
+            <div style="font-size:11px;color:#1a6b3a">+${fmt(profit)} 수익</div>
+          </div>
+        </div>`;
+      }).join('')}
+      <div style="font-size:11px;color:#aaa;text-align:center;margin-top:8px">* 나머지 10%(${fmt((loserTotal+winnerTotal)*0.1)})는 장비 지원금으로 사용</div>
+    `;
+  }
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach((t, i) => t.className = 'tab' + (['bet','list','result'][i] === tab ? ' active' : ''));
+    ['bet','list','result'].forEach(p => {
+      document.getElementById('panel-' + p).className = 'panel' + (p === tab ? ' active' : '');
+    });
+    if (tab === 'list') renderList();
+    if (tab === 'result') renderResult();
+  }
+
+  function showToast(msg) {
+    let t = document.getElementById('toast');
+    t.textContent = msg; t.className = 'toast show';
+    setTimeout(() => t.className = 'toast', 2500);
+  }
+
+  updateStats();
+</script>
+</body>
+</html>
