@@ -429,6 +429,7 @@ async function submitBet(){
   try{
     await fetch(GAS_URL,{
       method:'POST',
+      mode:'no-cors',
       body:JSON.stringify({name:n,amount:a,choice:selectedChoice,time}),
     });
     document.getElementById('betterName').value='';
@@ -515,7 +516,7 @@ async function adminDeleteBet(i){
   let b=bets[i];
   if(!confirm('"'+b.name+'"의 배팅('+b.amount.toLocaleString()+'원)을 삭제하시겠습니까?'))return;
   try{
-    await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'delete',index:i})});
+    await fetch(GAS_URL,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'delete',index:i})});
     await loadBets();
     renderAdminBetList();
     showToast('배팅 항목이 삭제되었습니다.');
@@ -529,7 +530,7 @@ async function adminResetAll(){
   if(!confirm('전체 배팅 데이터를 초기화하시겠습니까?\n이 작업은 되돌릴 수 없습니다.'))return;
   if(!confirm('정말로 삭제하시겠습니까? 모든 배팅 내역이 사라집니다.'))return;
   try{
-    await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'resetAll'})});
+    await fetch(GAS_URL,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'resetAll'})});
     declaredResult=null;localStorage.removeItem('mountain_result');
     await loadBets();
     renderAdminBetList();
