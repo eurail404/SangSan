@@ -91,6 +91,27 @@
   .progress-bar { height: 100%; border-radius: 20px; background: linear-gradient(90deg, #1a6b3a, #2d9e5f); transition: width .4s; }
   .progress-labels { display: flex; justify-content: space-between; font-size: 11px; color: #888; }
 
+  /* 관리자 패널 */
+  .admin-section { background: #fff; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; box-shadow: 0 1px 4px rgba(0,0,0,.08); border: 2px solid #e74c3c; }
+  .admin-login { display: flex; flex-direction: column; gap: 10px; }
+  .admin-login input { width: 100%; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #1a1a1a; outline: none; }
+  .admin-login input:focus { border-color: #e74c3c; }
+  .admin-login-btn { padding: 10px; border-radius: 8px; border: none; background: #e74c3c; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .admin-login-btn:hover { background: #c0392b; }
+  .admin-panel-content { display: none; }
+  .admin-panel-content.visible { display: block; }
+  .admin-action-btn { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #e74c3c; background: #fff; color: #e74c3c; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 10px; transition: all .15s; }
+  .admin-action-btn:hover { background: #fff0ef; }
+  .admin-action-btn.danger { background: #e74c3c; color: #fff; }
+  .admin-action-btn.danger:hover { background: #c0392b; }
+  .admin-bet-item { background: #fafafa; border: 1px solid #eee; border-radius: 10px; padding: .75rem 1rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .admin-delete-btn { background: none; border: 1px solid #e74c3c; color: #e74c3c; border-radius: 6px; padding: 3px 10px; font-size: 12px; cursor: pointer; }
+  .admin-delete-btn:hover { background: #fff0ef; }
+  .admin-logout-btn { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ddd; background: #fff; color: #888; font-size: 13px; cursor: pointer; margin-top: 4px; }
+  .admin-logout-btn:hover { background: #f9f9f9; }
+  .admin-divider { border: none; border-top: 1px solid #eee; margin: 1rem 0; }
+  .admin-warning { background: #fff8e1; border: 1px solid #f0c040; border-radius: 8px; padding: .75rem; font-size: 12px; color: #7a6000; margin-bottom: 1rem; line-height: 1.6; }
+
   @media (max-width: 400px) {
     .stats-grid { grid-template-columns: 1fr; }
     .bet-options, .result-options { grid-template-columns: 1fr; }
@@ -127,6 +148,7 @@
     <button class="tab active" onclick="switchTab('bet')">🎯 배팅하기</button>
     <button class="tab" onclick="switchTab('list')">📋 배팅 현황</button>
     <button class="tab" onclick="switchTab('result')">🏆 결과</button>
+    <button class="tab" onclick="switchTab('admin')">🔐 관리자</button>
   </div>
 
   <!-- 배팅하기 탭 -->
@@ -217,6 +239,43 @@
     <div class="section" id="winnerSection" style="display:none">
       <div class="section-title">🎉 배당 정산 결과</div>
       <div id="winnerList"></div>
+    </div>
+  </div>
+
+  <!-- 관리자 탭 -->
+  <div id="panel-admin" class="panel">
+    <div class="admin-section">
+      <div class="section-title">🔐 관리자 패널</div>
+
+      <!-- 로그인 전 -->
+      <div id="adminLogin">
+        <p style="font-size:13px;color:#888;margin-bottom:.875rem">관리자 비밀번호를 입력하세요.</p>
+        <div class="admin-login">
+          <input type="password" id="adminPwInput" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')adminLogin()">
+          <button class="admin-login-btn" onclick="adminLogin()">🔓 로그인</button>
+        </div>
+        <p id="loginError" style="color:#e74c3c;font-size:12px;margin-top:6px;display:none">❌ 비밀번호가 틀렸습니다.</p>
+      </div>
+
+      <!-- 로그인 후 -->
+      <div class="admin-panel-content" id="adminContent">
+        <div class="admin-warning">
+          ⚠️ 관리자 전용 메뉴입니다. 삭제된 데이터는 복구할 수 없습니다.
+        </div>
+
+        <div class="section-title" style="margin-bottom:.75rem">📋 개별 배팅 삭제</div>
+        <div id="adminBetList" style="margin-bottom:1rem;max-height:300px;overflow-y:auto"></div>
+
+        <hr class="admin-divider">
+
+        <div class="section-title" style="margin-bottom:.75rem">⚙️ 전체 초기화</div>
+        <button class="admin-action-btn" onclick="adminResetResult()">🔄 결과 선언 초기화</button>
+        <button class="admin-action-btn danger" onclick="adminResetAll()">🗑️ 전체 배팅 데이터 초기화</button>
+
+        <hr class="admin-divider">
+
+        <button class="admin-logout-btn" onclick="adminLogout()">🔒 로그아웃</button>
+      </div>
     </div>
   </div>
 
@@ -406,13 +465,84 @@
     `;
   }
 
+  const ADMIN_PW = 'sangjin2025';
+  let adminLoggedIn = false;
+
+  function adminLogin() {
+    let pw = document.getElementById('adminPwInput').value;
+    if (pw === ADMIN_PW) {
+      adminLoggedIn = true;
+      document.getElementById('adminLogin').style.display = 'none';
+      document.getElementById('adminContent').className = 'admin-panel-content visible';
+      document.getElementById('loginError').style.display = 'none';
+      document.getElementById('adminPwInput').value = '';
+      renderAdminBetList();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+      document.getElementById('adminPwInput').value = '';
+    }
+  }
+
+  function adminLogout() {
+    adminLoggedIn = false;
+    document.getElementById('adminLogin').style.display = 'block';
+    document.getElementById('adminContent').className = 'admin-panel-content';
+  }
+
+  function renderAdminBetList() {
+    let el = document.getElementById('adminBetList');
+    if (bets.length === 0) {
+      el.innerHTML = '<p style="color:#aaa;font-size:13px;text-align:center;padding:1rem">배팅 데이터가 없습니다.</p>';
+      return;
+    }
+    el.innerHTML = bets.map((b, i) => `
+      <div class="admin-bet-item">
+        <div>
+          <div style="font-size:13px;font-weight:600">${b.name}</div>
+          <div style="font-size:11px;color:#aaa">${b.time} · ${b.choice === 'success' ? '🏆 성공' : '😥 실패'} · ${b.amount.toLocaleString()}원</div>
+        </div>
+        <button class="admin-delete-btn" onclick="adminDeleteBet(${i})">삭제</button>
+      </div>
+    `).join('');
+  }
+
+  function adminDeleteBet(idx) {
+    let b = bets[idx];
+    if (!confirm(`"${b.name}"의 배팅(${b.amount.toLocaleString()}원)을 삭제하시겠습니까?`)) return;
+    bets.splice(idx, 1);
+    save();
+    updateStats();
+    renderAdminBetList();
+    showToast('배팅 항목이 삭제되었습니다.');
+  }
+
+  function adminResetResult() {
+    if (!confirm('결과 선언을 초기화하시겠습니까?')) return;
+    declaredResult = null;
+    localStorage.removeItem('mountain_result');
+    showToast('🔄 결과 선언이 초기화되었습니다.');
+  }
+
+  function adminResetAll() {
+    if (!confirm('⚠️ 전체 배팅 데이터를 초기화하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) return;
+    if (!confirm('정말로 삭제하시겠습니까? 모든 배팅 내역이 사라집니다.')) return;
+    bets = [];
+    declaredResult = null;
+    localStorage.removeItem('mountain_bets_v2');
+    localStorage.removeItem('mountain_result');
+    updateStats();
+    renderAdminBetList();
+    showToast('🗑️ 전체 데이터가 초기화되었습니다.');
+  }
+
   function switchTab(tab) {
-    document.querySelectorAll('.tab').forEach((t, i) => t.className = 'tab' + (['bet','list','result'][i] === tab ? ' active' : ''));
-    ['bet','list','result'].forEach(p => {
+    document.querySelectorAll('.tab').forEach((t, i) => t.className = 'tab' + (['bet','list','result','admin'][i] === tab ? ' active' : ''));
+    ['bet','list','result','admin'].forEach(p => {
       document.getElementById('panel-' + p).className = 'panel' + (p === tab ? ' active' : '');
     });
     if (tab === 'list') renderList();
     if (tab === 'result') renderResult();
+    if (tab === 'admin' && adminLoggedIn) renderAdminBetList();
   }
 
   function showToast(msg) {
