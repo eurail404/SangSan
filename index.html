@@ -338,17 +338,37 @@ function filterSch(type,btn){
   renderSchedule(type);
 }
 
-let bets=JSON.parse(localStorage.getItem('mountain_bets_v2')||'[]');
+const GAS_URL='https://script.google.com/macros/s/AKfycbzaqF7aPYigHxvyITcRPP0mzwdDaGZ--dZXMIW6pZ-9ZC6YaDZmKmuxOy6nIKRc-14gwQ/exec';
+let bets=[];
 let selectedChoice=null;
 let declaredResult=localStorage.getItem('mountain_result')||null;
-function save(){localStorage.setItem('mountain_bets_v2',JSON.stringify(bets));}
+
 function fmt(n){return Math.round(n).toLocaleString('ko-KR')+'원';}
+
+async function loadBets(){
+  try{
+    const res=await fetch(GAS_URL);
+    const json=await res.json();
+    bets=json.data.filter(r=>r.name).map(r=>({
+      name:r.name,
+      amount:parseInt(r.amount)||0,
+      choice:r.choice,
+      time:r.time
+    }));
+    updateStats();
+    renderList();
+  }catch(e){
+    console.error('불러오기 실패',e);
+  }
+}
+
 function calcOdds(){
   let s=0,f=0;
   bets.forEach(b=>{if(b.choice==='success')s+=b.amount;else f+=b.amount;});
   let t=s+f,p=t*0.9;
   return{sOdds:Math.max(1.05,s>0?p/s:2),fOdds:Math.max(1.05,f>0?p/f:2),sTotal:s,fTotal:f,total:t};
 }
+
 function updateStats(){
   let t=bets.reduce((s,b)=>s+b.amount,0);
   document.getElementById('totalBetters').textContent=bets.length+'명';
@@ -361,7 +381,6 @@ function updateStats(){
   document.getElementById('progressBar').style.width=sp+'%';
   document.getElementById('pct-success').textContent='성공 '+sp+'%';
   document.getElementById('pct-fail').textContent='실패 '+(100-sp)+'%';
-  // 라이브 배팅 현황 카드
   let sCnt=bets.filter(b=>b.choice==='success').length;
   let fCnt=bets.filter(b=>b.choice==='fail').length;
   document.getElementById('live-success-amt').textContent=fmt(sTotal);
@@ -373,12 +392,14 @@ function updateStats(){
   document.getElementById('live-if-fail').textContent=fmt(BASE*fOdds)+' (x'+fOdds.toFixed(2)+')';
   updatePreview();
 }
+
 function selectBet(c){
   selectedChoice=c;
   document.getElementById('btn-success').className='bet-btn'+(c==='success'?' selected-success':'');
   document.getElementById('btn-fail').className='bet-btn'+(c==='fail'?' selected-fail':'');
   checkSubmit();updatePreview();
 }
+
 function updatePreview(){
   let amt=parseInt(document.getElementById('betAmount').value)||0;
   let p=document.getElementById('preview');
@@ -390,30 +411,48 @@ function updatePreview(){
   document.getElementById('prev-return').textContent=fmt(amt*odds)+' (x'+odds.toFixed(2)+')';
   p.style.display='block';checkSubmit();
 }
+
 function checkSubmit(){
   let n=document.getElementById('betterName').value.trim();
   let a=parseInt(document.getElementById('betAmount').value)||0;
   document.getElementById('submitBtn').disabled=!(n&&a>=1000&&selectedChoice);
 }
-function submitBet(){
+
+async function submitBet(){
   let n=document.getElementById('betterName').value.trim();
   let a=parseInt(document.getElementById('betAmount').value);
   if(!n||!a||!selectedChoice)return;
-  bets.push({name:n,amount:a,choice:selectedChoice,time:new Date().toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})});
-  save();
-  document.getElementById('betterName').value='';
-  document.getElementById('betAmount').value='';
-  selectedChoice=null;
-  document.getElementById('btn-success').className='bet-btn';
-  document.getElementById('btn-fail').className='bet-btn';
-  document.getElementById('preview').style.display='none';
-  document.getElementById('submitBtn').disabled=true;
-  updateStats();renderList();
-  showToast('배팅 완료! 정상진 기술총괄 화이팅!');
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true;
+  btn.textContent='저장 중...';
+  const time=new Date().toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  try{
+    await fetch(GAS_URL,{
+      method:'POST',
+      body:JSON.stringify({name:n,amount:a,choice:selectedChoice,time}),
+    });
+    document.getElementById('betterName').value='';
+    document.getElementById('betAmount').value='';
+    selectedChoice=null;
+    document.getElementById('btn-success').className='bet-btn';
+    document.getElementById('btn-fail').className='bet-btn';
+    document.getElementById('preview').style.display='none';
+    btn.textContent='배팅 참여하기';
+    await loadBets();
+    showToast('배팅 완료! 정상진 기술총괄 화이팅!');
+  }catch(e){
+    showToast('저장 실패. 다시 시도해 주세요.');
+    btn.disabled=false;
+    btn.textContent='배팅 참여하기';
+  }
 }
+
 function renderList(){
   let list=document.getElementById('betsList'),sBox=document.getElementById('summaryBox');
-  if(bets.length===0){list.innerHTML='<div class="empty-state"><span class="empty-icon">&#9968;&#65039;</span>아직 배팅 참여자가 없습니다.<br>첫 번째 배터가 되어보세요!</div>';sBox.style.display='none';return;}
+  if(bets.length===0){
+    list.innerHTML='<div class="empty-state"><span class="empty-icon">&#9968;&#65039;</span>아직 배팅 참여자가 없습니다.<br>첫 번째 배터가 되어보세요!</div>';
+    sBox.style.display='none';return;
+  }
   let s=0,f=0;
   list.innerHTML=bets.slice().reverse().map(b=>{
     if(b.choice==='success')s+=b.amount;else f+=b.amount;
@@ -472,21 +511,30 @@ function renderAdminBetList(){
   if(bets.length===0){el.innerHTML='<p style="color:#aaa;font-size:13px;text-align:center;padding:1rem">배팅 데이터가 없습니다.</p>';return;}
   el.innerHTML=bets.map((b,i)=>'<div class="admin-bet-item"><div><div style="font-size:13px;font-weight:600">'+b.name+'</div><div style="font-size:11px;color:#aaa">'+b.time+' · '+(b.choice==='success'?'성공':'실패')+' · '+b.amount.toLocaleString()+'원</div></div><button class="admin-delete-btn" onclick="adminDeleteBet('+i+')">삭제</button></div>').join('');
 }
-function adminDeleteBet(i){
+async function adminDeleteBet(i){
   let b=bets[i];
   if(!confirm('"'+b.name+'"의 배팅('+b.amount.toLocaleString()+'원)을 삭제하시겠습니까?'))return;
-  bets.splice(i,1);save();updateStats();renderAdminBetList();showToast('배팅 항목이 삭제되었습니다.');
+  try{
+    await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'delete',index:i})});
+    await loadBets();
+    renderAdminBetList();
+    showToast('배팅 항목이 삭제되었습니다.');
+  }catch(e){showToast('삭제 실패. 다시 시도해 주세요.');}
 }
 function adminResetResult(){
   if(!confirm('결과 선언을 초기화하시겠습니까?'))return;
   declaredResult=null;localStorage.removeItem('mountain_result');showToast('결과 선언이 초기화되었습니다.');
 }
-function adminResetAll(){
+async function adminResetAll(){
   if(!confirm('전체 배팅 데이터를 초기화하시겠습니까?\n이 작업은 되돌릴 수 없습니다.'))return;
   if(!confirm('정말로 삭제하시겠습니까? 모든 배팅 내역이 사라집니다.'))return;
-  bets=[];declaredResult=null;
-  localStorage.removeItem('mountain_bets_v2');localStorage.removeItem('mountain_result');
-  updateStats();renderAdminBetList();showToast('전체 데이터가 초기화되었습니다.');
+  try{
+    await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'resetAll'})});
+    declaredResult=null;localStorage.removeItem('mountain_result');
+    await loadBets();
+    renderAdminBetList();
+    showToast('전체 데이터가 초기화되었습니다.');
+  }catch(e){showToast('초기화 실패. 다시 시도해 주세요.');}
 }
 const TABS=['bet','list','schedule','result','admin'];
 function switchTab(tab){
@@ -502,7 +550,8 @@ function showToast(msg){
   t.textContent=msg;t.className='toast show';
   setTimeout(()=>t.className='toast',2500);
 }
-updateStats();
+loadBets();
+setInterval(loadBets, 30000);
 </script>
 </body>
 </html>
